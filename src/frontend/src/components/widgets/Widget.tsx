@@ -6,6 +6,7 @@ interface WidgetProps {
   title: string;
   colSpan: number;
   darkMode: boolean;
+  accentColor: string;
   onResize: (id: string) => void;
   onDragStart: (e: React.DragEvent<HTMLDivElement>, id: string) => void;
   onDrop: (e: React.DragEvent<HTMLDivElement>, id: string) => void;
@@ -19,6 +20,7 @@ export default function Widget({
   title,
   colSpan,
   darkMode,
+  accentColor,
   onResize,
   onDragStart,
   onDrop,
@@ -57,9 +59,14 @@ export default function Widget({
         ${spanClass}
         rounded-lg shadow-xl overflow-hidden flex flex-col min-h-[28rem] border transition-all duration-300 ease-in-out
         ${darkMode ? "bg-[#232f3e] border-gray-700 hover:shadow-2xl" : "bg-white border-gray-200 hover:shadow-2xl"}
-        ${isDragging === id ? "opacity-30 border-4 border-dashed border-[#FF9900]" : ""}
-        ${isDragOver ? "ring-4 ring-[#FF9900]/50 scale-[1.02]" : ""}
+        ${isDragging === id ? "opacity-30 border-4 border-dashed" : ""}
+        ${isDragOver ? "ring-4 scale-[1.02]" : ""}
       `}
+      style={
+        isDragging === id || isDragOver
+          ? { borderColor: accentColor, boxShadow: `0 0 0 4px ${accentColor}40` }
+          : {}
+      }
     >
       {/* Header */}
       <div
@@ -79,8 +86,11 @@ export default function Widget({
         <button
           onClick={() => onResize(id)}
           className={`p-1.5 rounded transition-colors ${
-            darkMode ? "text-gray-400 hover:text-[#FF9900] hover:bg-gray-700" : "text-gray-500 hover:text-[#FF9900] hover:bg-gray-100"
+            darkMode ? "text-gray-400 hover:bg-gray-700" : "text-gray-500 hover:bg-gray-100"
           }`}
+          style={{ color: darkMode ? undefined : accentColor }}
+          onMouseEnter={(e) => (e.currentTarget.style.color = accentColor)}
+          onMouseLeave={(e) => (e.currentTarget.style.color = darkMode ? "#9ca3af" : "#6b7280")}
           title={`Current Size: ${colSpan} column${colSpan > 1 ? 's' : ''}. Click to resize.`}
         >
           {colSpan === 3 ? <Minimize2 size={14} /> : <Maximize2 size={14} />}

@@ -11,9 +11,10 @@ import {
 interface SidebarProps {
   isOpen: boolean;
   darkMode: boolean;
+  accentColor: string;
 }
 
-export default function Sidebar({ isOpen, darkMode }: SidebarProps) {
+export default function Sidebar({ isOpen, darkMode, accentColor }: SidebarProps) {
   const navItems = [
     { icon: LayoutDashboard, label: "Dashboard", active: true },
     { icon: Wallet, label: "Cost Management" },
@@ -50,13 +51,14 @@ export default function Sidebar({ isOpen, darkMode }: SidebarProps) {
                 ${
                   item.active
                     ? darkMode
-                      ? "bg-[#232f3e] text-[#FF9900] border border-gray-600 shadow-md"
-                      : "bg-white text-[#FF9900] border border-gray-200 shadow-sm"
+                      ? "bg-[#232f3e] border border-gray-600 shadow-md"
+                      : "bg-white border border-gray-200 shadow-sm"
                     : darkMode
                       ? "text-gray-300 hover:bg-[#232f3e] hover:text-white"
                       : "text-gray-700 hover:bg-gray-200 hover:text-[#232f3e]"
                 }
               `}
+              style={item.active ? { color: accentColor } : {}}
             >
               <item.icon size={18} />
               {item.label}

@@ -16,6 +16,9 @@ export default function Dashboard() {
   const [darkMode, setDarkMode] = useState(true);
   const toggleTheme = () => setDarkMode((prev) => !prev);
 
+  // accent color
+  const [accentColor, setAccentColor] = useState("#FF9900");
+
   // sidebar
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
@@ -102,9 +105,11 @@ export default function Dashboard() {
         setSidebarOpen={setSidebarOpen}
         darkMode={darkMode}
         toggleTheme={toggleTheme}
+        accentColor={accentColor}
+        setAccentColor={setAccentColor}
       />
 
-      <Sidebar isOpen={sidebarOpen} darkMode={darkMode} />
+      <Sidebar isOpen={sidebarOpen} darkMode={darkMode} accentColor={accentColor} />
 
       <main className="lg:ml-64 pt-14 min-h-screen transition-all duration-300">
         <div className="p-6 md:p-8 max-w-[1600px] mx-auto space-y-6">
@@ -132,7 +137,8 @@ export default function Dashboard() {
               </span>
 
               <button
-                className="bg-[#FF9900] hover:bg-[#ec8d00] text-[#232f3e] px-5 py-2.5 rounded-md text-sm font-bold shadow-md hover:shadow-lg transition-all flex items-center gap-2"
+                className="text-[#232f3e] px-5 py-2.5 rounded-md text-sm font-bold shadow-md hover:shadow-lg transition-all flex items-center gap-2 hover:opacity-90"
+                style={{ backgroundColor: accentColor }}
               >
                 <Activity size={16} />
                 Run Analysis
@@ -152,9 +158,10 @@ export default function Dashboard() {
                 key={i}
                 className={`p-5 rounded-lg shadow-lg border-l-4 transition-all duration-200 cursor-pointer ${
                   darkMode
-                    ? "bg-gradient-to-br from-[#232f3e] to-[#1a2332] border-l-[#FF9900] border-r border-t border-b border-gray-700 hover:shadow-xl hover:scale-[1.02]"
-                    : "bg-gradient-to-br from-white to-gray-50 border-l-[#FF9900] border-r border-t border-b border-gray-200 hover:shadow-xl hover:scale-[1.02]"
+                    ? "bg-gradient-to-br from-[#232f3e] to-[#1a2332] border-r border-t border-b border-gray-700 hover:shadow-xl hover:scale-[1.02]"
+                    : "bg-gradient-to-br from-white to-gray-50 border-r border-t border-b border-gray-200 hover:shadow-xl hover:scale-[1.02]"
                 }`}
+                style={{ borderLeftColor: accentColor }}
               >
                 <p
                   className={`text-xs font-bold uppercase tracking-wider ${
@@ -196,6 +203,7 @@ export default function Dashboard() {
                 title={w.title}
                 colSpan={w.colSpan}
                 darkMode={darkMode}
+                accentColor={accentColor}
                 onResize={handleResizeWidget}
                 onDragStart={handleDragStart}
                 onDragEnter={handleDragEnter}
