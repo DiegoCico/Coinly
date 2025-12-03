@@ -1,23 +1,16 @@
-import "@cloudscape-design/global-styles/index.css";
-import AppLayout from "@cloudscape-design/components/app-layout";
-import SideNavigation from "@cloudscape-design/components/side-navigation";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import Dashboard from "./pages/Dashboard";
 
-function App() {
+export default function App() {
   return (
-    <AppLayout
-      navigation={
-        <SideNavigation
-          header={{ text: "Coinly", href: "#" }}
-          items={[
-            { type: "link", text: "Dashboard", href: "#" },
-            { type: "link", text: "Preferences", href: "#" },
-          ]}
-        />
-      }
-      content={<Dashboard />}
-    />
+    <BrowserRouter>
+      <Routes>
+        {/* Redirect "/" → "/dashboard" */}
+        <Route path="/" element={<Navigate to="/dashboard" replace />} />
+
+        {/* Dashboard page */}
+        <Route path="/dashboard" element={<Dashboard />} />
+      </Routes>
+    </BrowserRouter>
   );
 }
-
-export default App;

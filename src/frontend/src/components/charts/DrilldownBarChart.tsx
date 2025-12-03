@@ -5,37 +5,41 @@ import {
   XAxis,
   YAxis,
   Tooltip,
-  Bar
+  Bar,
+  Cell
 } from "recharts";
-import { BAR_DATA } from "../../data/mockData";
+import { DRILLDOWN_DATA } from "../../data/mockData";
 
 interface Props {
   darkMode: boolean;
 }
 
-export default function MonthlyBarChart({ darkMode }: Props) {
+export default function DrilldownBarChart({ darkMode }: Props) {
   return (
     <ResponsiveContainer width="100%" height="100%">
-      <BarChart data={BAR_DATA} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={darkMode ? "#374151" : "#e5e7eb"} />
+      <BarChart layout="vertical" data={DRILLDOWN_DATA} margin={{ top: 10, right: 20, left: 20, bottom: 0 }}>
+        <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke={darkMode ? "#374151" : "#e5e7eb"} />
 
         <XAxis
+          type="number"
+          axisLine={false}
+          tickLine={false}
+          tick={{ fill: darkMode ? "#9ca3af" : "#6b7280", fontSize: 12 }}
+          tickFormatter={(value) => `$${value}`}
+        />
+
+        <YAxis
+          type="category"
           dataKey="name"
           axisLine={false}
           tickLine={false}
           tick={{ fill: darkMode ? "#9ca3af" : "#6b7280", fontSize: 12 }}
-          dy={10}
-        />
-
-        <YAxis
-          axisLine={false}
-          tickLine={false}
-          tick={{ fill: darkMode ? "#9ca3af" : "#6b7280", fontSize: 12 }}
-          tickFormatter={(value) => `$${value / 1000}k`}
+          dx={-10}
+          width={80}
         />
 
         <Tooltip
-          formatter={(value) => [`$${(value as number).toFixed(2)}`, "Spend"]}
+          formatter={(val) => [`$${(val as number).toFixed(2)}`, "Cost"]}
           contentStyle={{
             backgroundColor: darkMode ? "#1f2937" : "#232f3e",
             border: "none",
@@ -44,7 +48,11 @@ export default function MonthlyBarChart({ darkMode }: Props) {
           }}
         />
 
-        <Bar dataKey="spend" fill="#00A1C9" radius={[4, 4, 0, 0]} barSize={30} />
+        <Bar dataKey="cost" barSize={20} radius={[0, 4, 4, 0]}>
+          {DRILLDOWN_DATA.map((d, i) => (
+            <Cell key={i} fill={d.color} />
+          ))}
+        </Bar>
       </BarChart>
     </ResponsiveContainer>
   );
