@@ -9,6 +9,7 @@ import * as apigwv2 from "aws-cdk-lib/aws-apigatewayv2";
 import * as apigwIntegrations from "aws-cdk-lib/aws-apigatewayv2-integrations";
 
 import * as dynamodb from "aws-cdk-lib/aws-dynamodb";
+import * as cognito from "aws-cdk-lib/aws-cognito";
 import * as logs from "aws-cdk-lib/aws-logs";
 
 export interface ApiStackProps extends cdk.StackProps {
@@ -25,6 +26,8 @@ export interface ApiStackProps extends cdk.StackProps {
     };
   };
   ddbTable: dynamodb.Table;
+  userPool?: cognito.UserPool;
+  userPoolClient?: cognito.UserPoolClient;
   serviceName?: string;
 }
 
@@ -62,6 +65,9 @@ export class ApiStack extends cdk.Stack {
         SERVICE_NAME: serviceName,
         TABLE_NAME: props.ddbTable.tableName,
         APP_REGION: this.region,
+        DYNAMODB_TABLE_NAME: props.ddbTable.tableName,
+        COGNITO_USER_POOL_ID: props.userPool?.userPoolId || '',
+        COGNITO_CLIENT_ID: props.userPoolClient?.userPoolClientId || '',
       },
 
       // ===== 3-Week Log Retention =====

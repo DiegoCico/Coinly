@@ -97,7 +97,7 @@ export default function Header({
                         } ${darkMode ? "ring-offset-gray-800" : "ring-offset-white"}`}
                         style={{ 
                           backgroundColor: color.value,
-                          ringColor: accentColor === color.value ? color.value : undefined
+                          ...(accentColor === color.value ? { '--tw-ring-color': color.value } as any : {})
                         }}
                         title={color.name}
                       />

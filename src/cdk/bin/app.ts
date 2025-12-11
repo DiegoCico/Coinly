@@ -6,6 +6,7 @@ import { resolveStage } from "../stage";
 import { ApiStack } from "../lib/api-stack";
 import { WebStack } from "../lib/web-stack";
 import { DynamoStack } from "../lib/dynamo-stack";
+import { CognitoStack } from "../lib/cognito-stack";
 
 const app = new cdk.App();
 
@@ -38,6 +39,14 @@ const dynamo = new DynamoStack(app, `CoinlyDynamo-${cfg.name}`, {
   serviceName: "coinly",
 });
 
+// ---------------- COGNITO ----------------
+const cognito = new CognitoStack(app, `CoinlyCognito-${cfg.name}`, {
+  env: { account, region },
+  stage: cfg.name,
+  serviceName: "coinly",
+  ddbTable: dynamo.table,
+});
+
 // ---------------- API STACK ----------------
 const api = new ApiStack(app, `CoinlyApi-${cfg.name}`, {
   env: { account, region },
@@ -56,10 +65,13 @@ const api = new ApiStack(app, `CoinlyApi-${cfg.name}`, {
     },
     cors: {
       allowCredentials: true,
-      allowHeaders: ["content-type", "authorization"],
+      allowHeaders: ["content-type", "authorization", "x-requested-with"],
       allowMethods: [
         apigwv2.CorsHttpMethod.GET,
         apigwv2.CorsHttpMethod.POST,
+        apigwv2.CorsHttpMethod.PUT,
+        apigwv2.CorsHttpMethod.PATCH,
+        apigwv2.CorsHttpMethod.DELETE,
         apigwv2.CorsHttpMethod.OPTIONS,
       ],
       allowOrigins: [
@@ -71,6 +83,8 @@ const api = new ApiStack(app, `CoinlyApi-${cfg.name}`, {
   },
 
   ddbTable: dynamo.table,
+  userPool: cognito.userPool,
+  userPoolClient: cognito.userPoolClient,
 });
 
 // ---------------- WEB STACK ----------------
@@ -87,11 +101,12 @@ const web = new WebStack(app, `CoinlyWeb-${cfg.name}`, {
   frontendBuildPath: "../../frontend/dist",
   apiDomainName,
   apiPaths: ["/trpc/*", "/health", "/hello"],
+  webUrl: undefined, // Will be set after deployment
 });
 
 // ---------------- TAGGING ----------------
 if (cfg.tags) {
-  [dynamo, api, web].forEach((stack) => {
+  [dynamo, cognito, api, web].forEach((stack) => {
     Object.entries(cfg.tags!).forEach(([k, v]) => {
       cdk.Tags.of(stack).add(k, v);
     });

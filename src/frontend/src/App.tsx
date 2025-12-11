@@ -1,16 +1,45 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { AuthProvider } from "./contexts/AuthContext";
+import ProtectedRoute from "./components/auth/ProtectedRoute";
 import Dashboard from "./pages/Dashboard";
+import Planner from "./pages/Planner";
+import SignIn from "./pages/SignIn";
+import SignUp from "./pages/SignUp";
+import ConfirmSignUp from "./pages/ConfirmSignUp";
 
 export default function App() {
   return (
-    <BrowserRouter>
-      <Routes>
-        {/* Redirect "/" → "/dashboard" */}
-        <Route path="/" element={<Navigate to="/dashboard" replace />} />
+    <AuthProvider>
+      <BrowserRouter>
+        <Routes>
+          {/* Public routes */}
+          <Route path="/signin" element={<SignIn />} />
+          <Route path="/signup" element={<SignUp />} />
+          <Route path="/confirm-signup" element={<ConfirmSignUp />} />
 
-        {/* Dashboard page */}
-        <Route path="/dashboard" element={<Dashboard />} />
-      </Routes>
-    </BrowserRouter>
+          {/* Protected routes */}
+          <Route path="/" element={<Navigate to="/dashboard" replace />} />
+          <Route 
+            path="/dashboard" 
+            element={
+              <ProtectedRoute>
+                <Dashboard />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/planner" 
+            element={
+              <ProtectedRoute>
+                <Planner />
+              </ProtectedRoute>
+            } 
+          />
+
+          {/* Catch all - redirect to dashboard */}
+          <Route path="*" element={<Navigate to="/dashboard" replace />} />
+        </Routes>
+      </BrowserRouter>
+    </AuthProvider>
   );
 }

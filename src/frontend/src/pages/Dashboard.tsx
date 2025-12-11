@@ -141,7 +141,7 @@ export default function Dashboard() {
                 style={{ backgroundColor: accentColor }}
               >
                 <Activity size={16} />
-                Run Analysis
+                Sync
               </button>
             </div>
           </div>

@@ -5,8 +5,12 @@ import {
   TrendingUp,
   Settings,
   HelpCircle,
-  LogOut
+  LogOut,
+  Target,
+  User
 } from "lucide-react";
+import { useLocation, useNavigate } from "react-router-dom";
+import { useAuth } from "../../contexts/AuthContext";
 
 interface SidebarProps {
   isOpen: boolean;
@@ -15,12 +19,17 @@ interface SidebarProps {
 }
 
 export default function Sidebar({ isOpen, darkMode, accentColor }: SidebarProps) {
+  const location = useLocation();
+  const navigate = useNavigate();
+  const { user, signOut } = useAuth();
+
   const navItems = [
-    { icon: LayoutDashboard, label: "Dashboard", active: true },
-    { icon: Wallet, label: "Cost Management" },
-    { icon: CreditCard, label: "Billing" },
-    { icon: TrendingUp, label: "Budgets" },
-    { icon: Settings, label: "Preferences" }
+    { icon: LayoutDashboard, label: "Dashboard", path: "/dashboard" },
+    { icon: Target, label: "Planner", path: "/planner" },
+    { icon: Wallet, label: "Cost Management", path: "/cost-management" },
+    { icon: CreditCard, label: "Billing", path: "/billing" },
+    { icon: TrendingUp, label: "Budgets", path: "/budgets" },
+    { icon: Settings, label: "Preferences", path: "/preferences" }
   ];
 
   return (
@@ -42,28 +51,32 @@ export default function Sidebar({ isOpen, darkMode, accentColor }: SidebarProps)
         </div>
 
         <nav className="space-y-1.5">
-          {navItems.map((item, idx) => (
-            <button
-              key={idx}
-              className={`
-                w-full flex items-center gap-3 px-3 py-2.5 text-sm font-medium rounded-md
-                transition-all duration-200
-                ${
-                  item.active
-                    ? darkMode
-                      ? "bg-[#232f3e] border border-gray-600 shadow-md"
-                      : "bg-white border border-gray-200 shadow-sm"
-                    : darkMode
-                      ? "text-gray-300 hover:bg-[#232f3e] hover:text-white"
-                      : "text-gray-700 hover:bg-gray-200 hover:text-[#232f3e]"
-                }
-              `}
-              style={item.active ? { color: accentColor } : {}}
-            >
-              <item.icon size={18} />
-              {item.label}
-            </button>
-          ))}
+          {navItems.map((item, idx) => {
+            const isActive = location.pathname === item.path;
+            return (
+              <button
+                key={idx}
+                onClick={() => navigate(item.path)}
+                className={`
+                  w-full flex items-center gap-3 px-3 py-2.5 text-sm font-medium rounded-md
+                  transition-all duration-200
+                  ${
+                    isActive
+                      ? darkMode
+                        ? "bg-[#232f3e] border border-gray-600 shadow-md"
+                        : "bg-white border border-gray-200 shadow-sm"
+                      : darkMode
+                        ? "text-gray-300 hover:bg-[#232f3e] hover:text-white"
+                        : "text-gray-700 hover:bg-gray-200 hover:text-[#232f3e]"
+                  }
+                `}
+                style={isActive ? { color: accentColor } : {}}
+              >
+                <item.icon size={18} />
+                {item.label}
+              </button>
+            );
+          })}
         </nav>
 
         <div
@@ -87,14 +100,42 @@ export default function Sidebar({ isOpen, darkMode, accentColor }: SidebarProps)
       </div>
 
       <div
-        className={`absolute bottom-0 left-0 right-0 p-4 border-t ${
+        className={`absolute bottom-0 left-0 right-0 border-t ${
           darkMode ? "border-gray-700 bg-[#1b2635]" : "border-gray-300 bg-[#f2f3f3]"
         }`}
       >
-        <button className="flex items-center gap-2 text-sm text-gray-500 hover:text-red-500 w-full px-2 py-2 transition-colors rounded hover:bg-red-500/10">
-          <LogOut size={16} />
-          Sign Out
-        </button>
+        {/* User Info */}
+        {user && (
+          <div className="p-4 border-b border-gray-700/20">
+            <div className="flex items-center gap-3">
+              <div 
+                className="w-10 h-10 rounded-full flex items-center justify-center text-sm font-semibold"
+                style={{ backgroundColor: `${accentColor}20`, color: accentColor }}
+              >
+                <User size={18} />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className={`text-sm font-medium truncate ${darkMode ? "text-white" : "text-[#232f3e]"}`}>
+                  {user.givenName} {user.familyName}
+                </p>
+                <p className={`text-xs truncate ${darkMode ? "text-gray-400" : "text-gray-600"}`}>
+                  {user.email}
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Sign Out Button */}
+        <div className="p-4">
+          <button 
+            onClick={() => signOut()}
+            className="flex items-center gap-2 text-sm text-gray-500 hover:text-red-500 w-full px-2 py-2 transition-colors rounded hover:bg-red-500/10"
+          >
+            <LogOut size={16} />
+            Sign Out
+          </button>
+        </div>
       </div>
     </aside>
   );
