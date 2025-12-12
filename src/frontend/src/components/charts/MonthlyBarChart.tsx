@@ -11,9 +11,10 @@ import { BAR_DATA } from "../../data/mockData";
 
 interface Props {
   darkMode: boolean;
+  timeRange?: string;
 }
 
-export default function MonthlyBarChart({ darkMode }: Props) {
+export default function MonthlyBarChart({ darkMode, timeRange = "30d" }: Props) {
   return (
     <ResponsiveContainer width="100%" height="100%">
       <BarChart data={BAR_DATA} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>

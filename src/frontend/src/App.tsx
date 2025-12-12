@@ -3,6 +3,7 @@ import { AuthProvider } from "./contexts/AuthContext";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
 import Dashboard from "./pages/Dashboard";
 import Planner from "./pages/Planner";
+import Preferences from "./pages/Preferences";
 import SignIn from "./pages/SignIn";
 import SignUp from "./pages/SignUp";
 import ConfirmSignUp from "./pages/ConfirmSignUp";
@@ -32,6 +33,14 @@ export default function App() {
             element={
               <ProtectedRoute>
                 <Planner />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/preferences" 
+            element={
+              <ProtectedRoute>
+                <Preferences />
               </ProtectedRoute>
             } 
           />

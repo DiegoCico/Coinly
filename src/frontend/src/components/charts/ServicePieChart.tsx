@@ -9,9 +9,10 @@ import { PIE_DATA } from "../../data/mockData";
 
 interface Props {
   darkMode: boolean;
+  timeRange?: string;
 }
 
-export default function ServicePieChart({ darkMode }: Props) {
+export default function ServicePieChart({ darkMode, timeRange = "30d" }: Props) {
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
 
   const totalValue = useMemo(

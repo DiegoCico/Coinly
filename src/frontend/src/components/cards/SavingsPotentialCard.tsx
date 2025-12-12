@@ -3,9 +3,10 @@ import { SAVINGS_DATA } from "../../data/mockData";
 
 interface Props {
   darkMode: boolean;
+  timeRange?: string;
 }
 
-export default function SavingsPotentialCard({ darkMode }: Props) {
+export default function SavingsPotentialCard({ darkMode, timeRange = "30d" }: Props) {
   return (
     <div className="space-y-4 h-full flex flex-col">
       <div className="flex-1 space-y-3">

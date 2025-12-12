@@ -2,9 +2,10 @@ import { TRANSACTIONS } from "../../data/mockData";
 
 interface Props {
   darkMode: boolean;
+  timeRange?: string;
 }
 
-export default function TransactionsTable({ darkMode }: Props) {
+export default function TransactionsTable({ darkMode, timeRange = "30d" }: Props) {
   return (
     <div className="overflow-x-auto rounded-lg">
       <table className="w-full text-sm text-left">

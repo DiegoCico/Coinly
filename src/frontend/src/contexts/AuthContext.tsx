@@ -84,7 +84,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
       if (response.ok) {
         const data = await response.json();
-        setUser(data.result.data);
+        setUser(data.result?.data || data);
       } else {
         throw new Error('Failed to load user profile');
       }
@@ -101,7 +101,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3001'}/trpc/auth.signIn`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ input: { email, password } }),
+        body: JSON.stringify({ email, password }),
       });
 
       const data = await response.json();
@@ -127,9 +127,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3001'}/trpc/auth.signUp`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          input: { email, password, givenName, familyName } 
-        }),
+        body: JSON.stringify({ email, password, givenName, familyName }),
       });
 
       const data = await response.json();
@@ -151,9 +149,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3001'}/trpc/auth.confirmSignUp`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          input: { email, confirmationCode } 
-        }),
+        body: JSON.stringify({ email, confirmationCode }),
       });
 
       const data = await response.json();
@@ -181,6 +177,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
             'Authorization': `Bearer ${tokens.accessToken}`,
             'Content-Type': 'application/json',
           },
+          body: JSON.stringify({}),
         });
       }
     } catch (error) {
@@ -197,7 +194,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3001'}/trpc/auth.forgotPassword`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ input: { email } }),
+        body: JSON.stringify({ email }),
       });
 
       const data = await response.json();
@@ -216,9 +213,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3001'}/trpc/auth.confirmForgotPassword`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          input: { email, confirmationCode, newPassword } 
-        }),
+        body: JSON.stringify({ email, confirmationCode, newPassword }),
       });
 
       const data = await response.json();
@@ -237,7 +232,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3001'}/trpc/auth.resendConfirmationCode`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ input: { email } }),
+        body: JSON.stringify({ email }),
       });
 
       const data = await response.json();
@@ -260,7 +255,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
           'Authorization': `Bearer ${getStoredTokens().accessToken}`,
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ input: updates }),
+        body: JSON.stringify(updates),
       });
 
       const data = await response.json();
@@ -344,7 +339,17 @@ function clearStoredTokens() {
 
 function isTokenExpired(token: string): boolean {
   try {
-    const payload = JSON.parse(atob(token.split('.')[1]));
+    let payload;
+    
+    // Check if it's a JWT (has dots) or demo token (base64 encoded JSON)
+    if (token.includes('.')) {
+      // JWT format
+      payload = JSON.parse(atob(token.split('.')[1]));
+    } else {
+      // Demo token format (base64 encoded JSON)
+      payload = JSON.parse(atob(token));
+    }
+    
     return payload.exp * 1000 < Date.now();
   } catch {
     return true;

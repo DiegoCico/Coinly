@@ -89,6 +89,22 @@ export default function Sidebar({ isOpen, darkMode, accentColor }: SidebarProps)
 
         <nav className="space-y-1.5">
           <button
+            onClick={() => navigate("/preferences")}
+            className={`w-full flex items-center gap-3 px-3 py-2.5 text-sm font-medium rounded-md transition-all duration-200 ${
+              location.pathname === "/preferences"
+                ? darkMode
+                  ? "bg-[#232f3e] border border-gray-600 shadow-md"
+                  : "bg-white border border-gray-200 shadow-sm"
+                : darkMode
+                  ? "text-gray-300 hover:bg-[#232f3e] hover:text-white"
+                  : "text-gray-700 hover:bg-gray-200"
+            }`}
+            style={location.pathname === "/preferences" ? { color: accentColor } : {}}
+          >
+            <Settings size={18} />
+            Preferences
+          </button>
+          <button
             className={`w-full flex items-center gap-3 px-3 py-2.5 text-sm font-medium rounded-md transition-all duration-200 ${
               darkMode ? "text-gray-300 hover:bg-[#232f3e] hover:text-white" : "text-gray-700 hover:bg-gray-200"
             }`}

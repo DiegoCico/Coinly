@@ -3,3 +3,14 @@ package-lock.json
 ./package-lock.json
 
 .env
+.env.local
+.env.development
+.env.production
+src/api/.env
+src/api/.env.local
+src/api/.env.development
+src/api/.env.production
+
+# Plaid secrets
+plaid-secrets.json
+**/plaid-secrets.json

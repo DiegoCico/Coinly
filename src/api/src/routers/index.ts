@@ -11,24 +11,18 @@ import { homeRouter } from './home';
 import { profileRouter } from './profile';
 import { exportRouter } from './export';
 import { plannerRouter } from './planner';
+import { plaidRouter } from './plaid';
 
 const coreRouter = router({
   health: publicProcedure.query(() => ({ ok: true })),
 });
 
-export const appRouter = mergeRouters(
-  coreRouter,
-  helloRouter,
-  s3Router,
-  authRouter,
-  teamspaceRouter,
-  rolesRouter,
-  usersRouter,
-  itemsRouter,
-  homeRouter,
-  profileRouter,
-  exportRouter,
-  plannerRouter,
-);
+export const appRouter = router({
+  health: publicProcedure.query(() => ({ ok: true })),
+  hello: helloRouter,
+  auth: authRouter,
+  planner: plannerRouter,
+  plaid: plaidRouter,
+});
 
 export type AppRouter = typeof appRouter;

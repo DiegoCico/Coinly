@@ -10,6 +10,73 @@ const dynamoClient = new DynamoDBClient({
 const docClient = DynamoDBDocumentClient.from(dynamoClient);
 
 const TABLE_NAME = process.env.DYNAMODB_TABLE_NAME || 'coinly-dev';
+const IS_DEMO_MODE = process.env.NODE_ENV === 'development' || process.env.DEMO_MODE === 'true';
+
+// Demo plans data for local development
+const DEMO_PLANS = [
+  {
+    id: 'demo_plan_1',
+    userId: 'demo_user_123',
+    title: 'Japan Trip 2025',
+    description: 'Two-week vacation to Tokyo and Kyoto',
+    planType: 'trip',
+    targetAmount: 8000,
+    currentAmount: 2400,
+    targetDate: '2025-06-15',
+    monthlyIncome: 5000,
+    monthlySavingsGoal: 800,
+    partnerContribution: 200,
+    isActive: true,
+    createdAt: '2024-01-15T00:00:00Z',
+    updatedAt: new Date().toISOString(),
+    milestones: [
+      { id: 'm1', title: 'Flight Booking', targetAmount: 2000, targetDate: '2025-03-01', completed: true, completedAt: '2024-11-15T00:00:00Z' },
+      { id: 'm2', title: 'Accommodation', targetAmount: 4000, targetDate: '2025-04-01', completed: false },
+      { id: 'm3', title: 'Activities & Food', targetAmount: 8000, targetDate: '2025-06-01', completed: false },
+    ],
+    expenses: [],
+  },
+  {
+    id: 'demo_plan_2',
+    userId: 'demo_user_123',
+    title: 'House Down Payment',
+    description: 'Saving for our first home',
+    planType: 'house',
+    targetAmount: 50000,
+    currentAmount: 18500,
+    targetDate: '2026-12-31',
+    monthlyIncome: 5000,
+    monthlySavingsGoal: 1500,
+    partnerContribution: 1000,
+    isActive: true,
+    createdAt: '2024-01-01T00:00:00Z',
+    updatedAt: new Date().toISOString(),
+    milestones: [
+      { id: 'm4', title: 'Emergency Fund', targetAmount: 10000, targetDate: '2025-06-01', completed: true, completedAt: '2024-10-01T00:00:00Z' },
+      { id: 'm5', title: 'Half Way Point', targetAmount: 25000, targetDate: '2025-12-01', completed: false },
+      { id: 'm6', title: 'Full Down Payment', targetAmount: 50000, targetDate: '2026-12-31', completed: false },
+    ],
+    expenses: [],
+  },
+  {
+    id: 'demo_plan_3',
+    userId: 'demo_user_123',
+    title: 'Emergency Fund',
+    description: '6 months of expenses',
+    planType: 'emergency',
+    targetAmount: 15000,
+    currentAmount: 15000,
+    targetDate: '2024-12-31',
+    monthlyIncome: 5000,
+    monthlySavingsGoal: 500,
+    partnerContribution: 0,
+    isActive: false,
+    createdAt: '2023-06-01T00:00:00Z',
+    updatedAt: new Date().toISOString(),
+    milestones: [],
+    expenses: [],
+  }
+];
 
 // Schemas
 const PlanTypeSchema = z.enum(['trip', 'house', 'car', 'education', 'emergency', 'other']);
@@ -83,6 +150,13 @@ export const plannerRouter = router({
       };
 
       try {
+        // Demo mode - just return the plan without saving (only for demo users)
+        if (IS_DEMO_MODE && userId.startsWith('demo_user')) {
+          console.log('Demo mode: Created plan', plan);
+          return plan;
+        }
+
+        // Production mode - save to DynamoDB
         await docClient.send(new PutCommand({
           TableName: TABLE_NAME,
           Item: {
@@ -109,6 +183,12 @@ export const plannerRouter = router({
       const userId = ctx.user.userId;
 
       try {
+        // Demo mode - return mock plans (only for demo users)
+        if (IS_DEMO_MODE && userId.startsWith('demo_user')) {
+          return DEMO_PLANS.filter(plan => plan.userId === userId);
+        }
+
+        // Production mode - get from DynamoDB
         const result = await docClient.send(new QueryCommand({
           TableName: TABLE_NAME,
           KeyConditionExpression: 'pk = :pk AND begins_with(sk, :sk)',
@@ -247,6 +327,13 @@ export const plannerRouter = router({
       const userId = ctx.user.userId;
 
       try {
+        // Demo mode - just log and return success (only for demo users)
+        if (IS_DEMO_MODE && userId.startsWith('demo_user')) {
+          console.log('Demo mode: Updated progress', input);
+          return { success: true };
+        }
+
+        // Production mode - update DynamoDB
         await docClient.send(new UpdateCommand({
           TableName: TABLE_NAME,
           Key: {
@@ -445,16 +532,23 @@ export const plannerRouter = router({
       const userId = ctx.user.userId;
 
       try {
-        const result = await docClient.send(new QueryCommand({
-          TableName: TABLE_NAME,
-          KeyConditionExpression: 'pk = :pk AND begins_with(sk, :sk)',
-          ExpressionAttributeValues: {
-            ':pk': `USER#${userId}`,
-            ':sk': 'PLAN#',
-          },
-        }));
+        let plans;
 
-        const plans = result.Items || [];
+        // Demo mode - use demo data (only for demo users)
+        if (IS_DEMO_MODE && userId.startsWith('demo_user')) {
+          plans = DEMO_PLANS.filter(plan => plan.userId === userId);
+        } else {
+          // Production mode - query DynamoDB
+          const result = await docClient.send(new QueryCommand({
+            TableName: TABLE_NAME,
+            KeyConditionExpression: 'pk = :pk AND begins_with(sk, :sk)',
+            ExpressionAttributeValues: {
+              ':pk': `USER#${userId}`,
+              ':sk': 'PLAN#',
+            },
+          }));
+          plans = result.Items || [];
+        }
         
         const totalTargetAmount = plans.reduce((sum, plan) => sum + (plan.targetAmount || 0), 0);
         const totalCurrentAmount = plans.reduce((sum, plan) => sum + (plan.currentAmount || 0), 0);

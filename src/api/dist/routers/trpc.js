@@ -51,7 +51,14 @@ const verifier = aws_jwt_verify_1.CognitoJwtVerifier.create({
  */
 const isAuthed = t.middleware(async ({ ctx, next }) => {
     const cookies = (0, cookies_1.parseCookiesFromCtx)(ctx);
-    const accessToken = cookies[cookies_1.COOKIE_ACCESS];
+    let accessToken = cookies[cookies_1.COOKIE_ACCESS];
+    // Also check Authorization header for Bearer token
+    if (!accessToken) {
+        const authHeader = ctx.req?.headers.authorization || ctx.event?.headers?.authorization;
+        if (authHeader && authHeader.startsWith('Bearer ')) {
+            accessToken = authHeader.substring(7);
+        }
+    }
     if (!accessToken) {
         throw new server_2.TRPCError({
             code: 'UNAUTHORIZED',
@@ -59,6 +66,42 @@ const isAuthed = t.middleware(async ({ ctx, next }) => {
         });
     }
     try {
+        // Check if this is a demo token (base64 encoded JSON)
+        const isDemoMode = process.env.NODE_ENV === 'development' || process.env.DEMO_MODE === 'true';
+        if (isDemoMode && !accessToken.includes('.')) {
+            // This looks like a demo token (base64 encoded, not JWT)
+            try {
+                const decoded = JSON.parse(Buffer.from(accessToken, 'base64').toString());
+                // Check if token is expired
+                if (decoded.exp && decoded.exp < Math.floor(Date.now() / 1000)) {
+                    throw new server_2.TRPCError({
+                        code: 'UNAUTHORIZED',
+                        message: 'Token expired',
+                    });
+                }
+                return next({
+                    ctx: {
+                        ...ctx,
+                        user: {
+                            teamId: decoded.sub,
+                            userId: decoded.sub,
+                            email: decoded.email,
+                            username: decoded.email,
+                            roleName: 'user',
+                            permissions: ['read', 'write'],
+                            decode: { ...decoded, access_token: accessToken },
+                        },
+                    },
+                });
+            }
+            catch (demoErr) {
+                throw new server_2.TRPCError({
+                    code: 'UNAUTHORIZED',
+                    message: 'Invalid demo token',
+                });
+            }
+        }
+        // Production Cognito JWT verification
         const decoded = await verifier.verify(accessToken);
         // Normalize email to a string at runtime to keep things predictable
         const emailValue = decoded.email !== undefined && decoded.email !== null ? String(decoded.email) : undefined;
@@ -74,7 +117,7 @@ const isAuthed = t.middleware(async ({ ctx, next }) => {
                     username: decoded['cognito:username'] !== null ? String(decoded['cognito:username']) : undefined,
                     roleName,
                     permissions,
-                    decode: decoded,
+                    decode: { ...decoded, access_token: accessToken },
                 },
             },
         });

@@ -95,39 +95,45 @@ class ApiService {
 
   // Plans
   async getPlans(): Promise<Plan[]> {
-    return this.request('/trpc/planner.getPlans');
+    const response = await this.request('/trpc/planner.getPlans');
+    return response.result?.data || response;
   }
 
   async getPlan(planId: string): Promise<Plan> {
-    return this.request(`/trpc/planner.getPlan?input=${encodeURIComponent(JSON.stringify({ planId }))}`);
+    const response = await this.request(`/trpc/planner.getPlan?input=${encodeURIComponent(JSON.stringify({ planId }))}`);
+    return response.result?.data || response;
   }
 
   async createPlan(input: CreatePlanInput): Promise<Plan> {
-    return this.request('/trpc/planner.createPlan', {
+    const response = await this.request('/trpc/planner.createPlan', {
       method: 'POST',
-      body: JSON.stringify({ input }),
+      body: JSON.stringify(input),
     });
+    return response.result?.data || response;
   }
 
   async updatePlan(planId: string, updates: Partial<CreatePlanInput>): Promise<{ success: boolean }> {
-    return this.request('/trpc/planner.updatePlan', {
+    const response = await this.request('/trpc/planner.updatePlan', {
       method: 'POST',
-      body: JSON.stringify({ input: { id: planId, ...updates } }),
+      body: JSON.stringify({ id: planId, ...updates }),
     });
+    return response.result?.data || response;
   }
 
   async updateProgress(update: ProgressUpdate): Promise<{ success: boolean }> {
-    return this.request('/trpc/planner.updateProgress', {
+    const response = await this.request('/trpc/planner.updateProgress', {
       method: 'POST',
-      body: JSON.stringify({ input: update }),
+      body: JSON.stringify(update),
     });
+    return response.result?.data || response;
   }
 
   async deletePlan(planId: string): Promise<{ success: boolean }> {
-    return this.request('/trpc/planner.deletePlan', {
+    const response = await this.request('/trpc/planner.deletePlan', {
       method: 'POST',
-      body: JSON.stringify({ input: { planId } }),
+      body: JSON.stringify({ planId }),
     });
+    return response.result?.data || response;
   }
 
   async getAnalytics(): Promise<{
@@ -141,7 +147,8 @@ class ApiService {
     overallProgress: number;
     plansByType: Record<string, { count: number; totalTarget: number; totalCurrent: number }>;
   }> {
-    return this.request('/trpc/planner.getAnalytics');
+    const response = await this.request('/trpc/planner.getAnalytics');
+    return response.result?.data || response;
   }
 
   async getProgressHistory(planId: string): Promise<Array<{
@@ -150,14 +157,16 @@ class ApiService {
     note?: string;
     createdAt: string;
   }>> {
-    return this.request(`/trpc/planner.getProgressHistory?input=${encodeURIComponent(JSON.stringify({ planId }))}`);
+    const response = await this.request(`/trpc/planner.getProgressHistory?input=${encodeURIComponent(JSON.stringify({ planId }))}`);
+    return response.result?.data || response;
   }
 
   async seedDemoData(): Promise<{ success: boolean; message: string; count: number }> {
-    return this.request('/trpc/planner.seedDemoData', {
+    const response = await this.request('/trpc/planner.seedDemoData', {
       method: 'POST',
       body: JSON.stringify({}),
     });
+    return response.result?.data || response;
   }
 }
 

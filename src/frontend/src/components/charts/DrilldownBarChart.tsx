@@ -12,9 +12,10 @@ import { DRILLDOWN_DATA } from "../../data/mockData";
 
 interface Props {
   darkMode: boolean;
+  timeRange?: string;
 }
 
-export default function DrilldownBarChart({ darkMode }: Props) {
+export default function DrilldownBarChart({ darkMode, timeRange = "30d" }: Props) {
   return (
     <ResponsiveContainer width="100%" height="100%">
       <BarChart layout="vertical" data={DRILLDOWN_DATA} margin={{ top: 10, right: 20, left: 20, bottom: 0 }}>

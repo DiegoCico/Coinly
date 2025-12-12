@@ -28,6 +28,36 @@ const docClient = DynamoDBDocumentClient.from(dynamoClient);
 
 const CLIENT_ID = process.env.COGNITO_CLIENT_ID || '';
 const TABLE_NAME = process.env.DYNAMODB_TABLE_NAME || 'coinly-dev';
+const IS_DEMO_MODE = process.env.NODE_ENV === 'development' || process.env.DEMO_MODE === 'true';
+
+// Demo user data for local development
+const DEMO_USERS = {
+  'demo@example.com': {
+    userId: 'demo_user_123',
+    email: 'demo@example.com',
+    password: 'DemoPassword123',
+    givenName: 'Demo',
+    familyName: 'User',
+    confirmed: true,
+  }
+};
+
+// Allowed users for authentication (only these emails can sign in)
+const ALLOWED_USERS = [
+  'demo@example.com',
+  'cicotosted@gmail.com'
+];
+
+// Generate a simple JWT-like token for demo mode
+function generateDemoToken(userId: string, email: string): string {
+  const payload = {
+    sub: userId,
+    email,
+    exp: Math.floor(Date.now() / 1000) + (60 * 60), // 1 hour
+    iat: Math.floor(Date.now() / 1000),
+  };
+  return Buffer.from(JSON.stringify(payload)).toString('base64');
+}
 
 // Input schemas
 const SignUpSchema = z.object({
@@ -82,6 +112,14 @@ export const authRouter = router({
     .input(SignUpSchema)
     .mutation(async ({ input }) => {
       try {
+        // Check if user is allowed to sign up
+        if (!ALLOWED_USERS.includes(input.email)) {
+          throw new TRPCError({
+            code: 'UNAUTHORIZED',
+            message: 'Access denied. This email is not authorized to register for this application.',
+          });
+        }
+
         const command = new SignUpCommand({
           ClientId: CLIENT_ID,
           Username: input.email,
@@ -162,6 +200,51 @@ export const authRouter = router({
     .input(SignInSchema)
     .mutation(async ({ input }) => {
       try {
+        // Check if user is allowed to sign in
+        if (!ALLOWED_USERS.includes(input.email)) {
+          throw new TRPCError({
+            code: 'UNAUTHORIZED',
+            message: 'Access denied. This email is not authorized to use this application.',
+          });
+        }
+
+        // Demo mode for demo@example.com only
+        if (IS_DEMO_MODE && input.email === 'demo@example.com') {
+          const demoUser = DEMO_USERS[input.email as keyof typeof DEMO_USERS];
+          
+          if (!demoUser) {
+            throw new TRPCError({
+              code: 'UNAUTHORIZED',
+              message: 'Invalid email or password',
+            });
+          }
+
+          if (demoUser.password !== input.password) {
+            throw new TRPCError({
+              code: 'UNAUTHORIZED',
+              message: 'Invalid email or password',
+            });
+          }
+
+          if (!demoUser.confirmed) {
+            throw new TRPCError({
+              code: 'BAD_REQUEST',
+              message: 'Account not confirmed',
+            });
+          }
+
+          const accessToken = generateDemoToken(demoUser.userId, demoUser.email);
+          
+          return {
+            success: true,
+            accessToken,
+            idToken: accessToken, // Same as access token in demo mode
+            refreshToken: accessToken,
+            expiresIn: 3600, // 1 hour
+          };
+        }
+
+        // Production Cognito authentication
         const command = new InitiateAuthCommand({
           ClientId: CLIENT_ID,
           AuthFlow: 'USER_SRP_AUTH',
@@ -288,6 +371,39 @@ export const authRouter = router({
           });
         }
 
+        // Demo mode - return mock profile only for demo users
+        if (IS_DEMO_MODE && userId.startsWith('demo_user')) {
+          const demoUser = Object.values(DEMO_USERS).find(u => u.userId === userId);
+          if (demoUser) {
+            return {
+              userId: demoUser.userId,
+              email: demoUser.email,
+              givenName: demoUser.givenName,
+              familyName: demoUser.familyName,
+              planCount: 3,
+              subscriptionTier: 'free',
+              preferences: {
+                theme: 'dark',
+                currency: 'USD',
+                notifications: {
+                  email: true,
+                  milestones: true,
+                  reminders: true,
+                },
+              },
+              stats: {
+                totalPlans: 3,
+                completedPlans: 1,
+                totalSaved: 35900,
+                totalTarget: 73000,
+              },
+              createdAt: '2024-01-01T00:00:00Z',
+              updatedAt: new Date().toISOString(),
+            };
+          }
+        }
+
+        // Production mode - get from DynamoDB
         const result = await docClient.send(new GetCommand({
           TableName: TABLE_NAME,
           Key: {

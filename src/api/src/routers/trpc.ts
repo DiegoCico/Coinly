@@ -83,7 +83,15 @@ const verifier = CognitoJwtVerifier.create({
  */
 const isAuthed = t.middleware(async ({ ctx, next }) => {
   const cookies = parseCookiesFromCtx(ctx);
-  const accessToken = cookies[COOKIE_ACCESS];
+  let accessToken = cookies[COOKIE_ACCESS];
+
+  // Also check Authorization header for Bearer token
+  if (!accessToken) {
+    const authHeader = ctx.req?.headers.authorization || ctx.event?.headers?.authorization;
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+      accessToken = authHeader.substring(7);
+    }
+  }
 
   if (!accessToken) {
     throw new TRPCError({
@@ -93,6 +101,45 @@ const isAuthed = t.middleware(async ({ ctx, next }) => {
   }
 
   try {
+    // Check if this is a demo token (base64 encoded JSON)
+    const isDemoMode = process.env.NODE_ENV === 'development' || process.env.DEMO_MODE === 'true';
+    
+    if (isDemoMode && !accessToken.includes('.')) {
+      // This looks like a demo token (base64 encoded, not JWT)
+      try {
+        const decoded = JSON.parse(Buffer.from(accessToken, 'base64').toString());
+        
+        // Check if token is expired
+        if (decoded.exp && decoded.exp < Math.floor(Date.now() / 1000)) {
+          throw new TRPCError({
+            code: 'UNAUTHORIZED',
+            message: 'Token expired',
+          });
+        }
+
+        return next({
+          ctx: {
+            ...ctx,
+            user: {
+              teamId: decoded.sub,
+              userId: decoded.sub,
+              email: decoded.email,
+              username: decoded.email,
+              roleName: 'user',
+              permissions: ['read', 'write'],
+              decode: { ...decoded, access_token: accessToken },
+            },
+          },
+        });
+      } catch (demoErr) {
+        throw new TRPCError({
+          code: 'UNAUTHORIZED',
+          message: 'Invalid demo token',
+        });
+      }
+    }
+
+    // Production Cognito JWT verification
     const decoded = await verifier.verify(accessToken);
 
     // Normalize email to a string at runtime to keep things predictable
@@ -113,7 +160,7 @@ const isAuthed = t.middleware(async ({ ctx, next }) => {
             decoded['cognito:username'] !== null ? String(decoded['cognito:username']) : undefined,
           roleName,
           permissions,
-          decode: decoded,
+          decode: { ...decoded, access_token: accessToken },
         },
       },
     });
