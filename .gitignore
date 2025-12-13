@@ -19,3 +19,4 @@ dist/
 
 ./dist
 
+src/api/.env.example
