@@ -55,7 +55,7 @@ export default function PerformanceChart({ darkMode, timeRange, privacyMode }: P
 
     const selectedData = dummyData[timeRange as keyof typeof dummyData] || dummyData["1y"];
     
-    return selectedData.map((point, index) => {
+    return selectedData.map((point) => {
       const initialValue = selectedData[0].value;
       const gain = point.value - initialValue;
       const gainPercent = ((point.value - initialValue) / initialValue) * 100;
@@ -174,7 +174,7 @@ export default function PerformanceChart({ darkMode, timeRange, privacyMode }: P
                       height: `${squareSize}px`,
                       backgroundColor: isGain ? "#10b981" : "#ef4444",
                       borderRadius: '6px',
-                      ringColor: isGain ? "#10b981" : "#ef4444",
+                      ...(isCurrentPeriod && { '--tw-ring-color': isGain ? "#10b981" : "#ef4444" } as any),
                       boxShadow: isCurrentPeriod 
                         ? `0 4px 12px ${isGain ? 'rgba(16, 185, 129, 0.3)' : 'rgba(239, 68, 68, 0.3)'}`
                         : `0 2px 6px ${isGain ? 'rgba(16, 185, 129, 0.2)' : 'rgba(239, 68, 68, 0.2)'}`

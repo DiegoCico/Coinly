@@ -15,9 +15,10 @@ interface SidebarProps {
   isOpen: boolean;
   darkMode: boolean;
   accentColor: string;
+  onOpenSettings: () => void;
 }
 
-export default function Sidebar({ isOpen, darkMode, accentColor }: SidebarProps) {
+export default function Sidebar({ isOpen, darkMode, accentColor, onOpenSettings }: SidebarProps) {
   const location = useLocation();
   const navigate = useNavigate();
   const { user, signOut } = useAuth();
@@ -86,17 +87,12 @@ export default function Sidebar({ isOpen, darkMode, accentColor }: SidebarProps)
 
         <nav className="space-y-1.5">
           <button
-            onClick={() => navigate("/preferences")}
+            onClick={onOpenSettings}
             className={`w-full flex items-center gap-3 px-3 py-2.5 text-sm font-medium rounded-md transition-all duration-200 ${
-              location.pathname === "/preferences"
-                ? darkMode
-                  ? "bg-[#232f3e] border border-gray-600 shadow-md"
-                  : "bg-white border border-gray-200 shadow-sm"
-                : darkMode
-                  ? "text-gray-300 hover:bg-[#232f3e] hover:text-white"
-                  : "text-gray-700 hover:bg-gray-200"
+              darkMode
+                ? "text-gray-300 hover:bg-[#232f3e] hover:text-white"
+                : "text-gray-700 hover:bg-gray-200"
             }`}
-            style={location.pathname === "/preferences" ? { color: accentColor } : {}}
           >
             <Settings size={18} />
             Settings
@@ -150,6 +146,7 @@ export default function Sidebar({ isOpen, darkMode, accentColor }: SidebarProps)
           </button>
         </div>
       </div>
+
     </aside>
   );
 }

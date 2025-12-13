@@ -4,6 +4,7 @@ import { Activity, Calendar, ChevronDown } from "lucide-react";
 import Header from "../components/layout/Header";
 import Sidebar from "../components/layout/Sidebar";
 import Widget from "../components/widgets/Widget";
+import SettingsModal from "../components/modals/SettingsModal";
 
 import MonthlyBarChart from "../components/charts/MonthlyBarChart";
 import ServicePieChart from "../components/charts/ServicePieChart";
@@ -21,6 +22,9 @@ export default function Dashboard() {
 
   // sidebar
   const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  // settings modal
+  const [showSettingsModal, setShowSettingsModal] = useState(false);
 
   // time range
   const [selectedTimeRange, setSelectedTimeRange] = useState("30d");
@@ -180,7 +184,12 @@ export default function Dashboard() {
         setAccentColor={setAccentColor}
       />
 
-      <Sidebar isOpen={sidebarOpen} darkMode={darkMode} accentColor={accentColor} />
+      <Sidebar 
+        isOpen={sidebarOpen} 
+        darkMode={darkMode} 
+        accentColor={accentColor}
+        onOpenSettings={() => setShowSettingsModal(true)}
+      />
 
       <main className="lg:ml-64 pt-14 min-h-screen transition-all duration-300">
         <div className="p-6 md:p-8 max-w-[1600px] mx-auto space-y-6">
@@ -520,6 +529,16 @@ export default function Dashboard() {
           onClick={() => setSidebarOpen(false)}
         />
       )}
+
+      {/* Settings Modal */}
+      <SettingsModal
+        isOpen={showSettingsModal}
+        onClose={() => setShowSettingsModal(false)}
+        darkMode={darkMode}
+        toggleTheme={toggleTheme}
+        accentColor={accentColor}
+        setAccentColor={setAccentColor}
+      />
     </div>
   );
 }

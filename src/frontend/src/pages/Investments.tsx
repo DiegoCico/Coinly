@@ -4,6 +4,7 @@ import { BarChart3, Activity, ChevronDown, Eye, EyeOff } from "lucide-react";
 import Header from "../components/layout/Header";
 import Sidebar from "../components/layout/Sidebar";
 import Widget from "../components/widgets/Widget";
+import SettingsModal from "../components/modals/SettingsModal";
 
 import PortfolioAllocationChart from "../components/charts/PortfolioAllocationChart";
 import PerformanceChart from "../components/charts/PerformanceChart";
@@ -21,6 +22,9 @@ export default function Investments() {
 
   // sidebar
   const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  // settings modal
+  const [showSettingsModal, setShowSettingsModal] = useState(false);
 
   // privacy mode
   const [privacyMode, setPrivacyMode] = useState(false);
@@ -191,7 +195,12 @@ export default function Investments() {
         setAccentColor={setAccentColor}
       />
 
-      <Sidebar isOpen={sidebarOpen} darkMode={darkMode} accentColor={accentColor} />
+      <Sidebar 
+        isOpen={sidebarOpen} 
+        darkMode={darkMode} 
+        accentColor={accentColor}
+        onOpenSettings={() => setShowSettingsModal(true)}
+      />
 
       <main className="lg:ml-64 pt-14 min-h-screen transition-all duration-300">
         <div className="p-6 md:p-8 max-w-[1600px] mx-auto space-y-6">
@@ -390,6 +399,16 @@ export default function Investments() {
           onClick={() => setSidebarOpen(false)}
         />
       )}
+
+      {/* Settings Modal */}
+      <SettingsModal
+        isOpen={showSettingsModal}
+        onClose={() => setShowSettingsModal(false)}
+        darkMode={darkMode}
+        toggleTheme={toggleTheme}
+        accentColor={accentColor}
+        setAccentColor={setAccentColor}
+      />
     </div>
   );
 }

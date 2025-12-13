@@ -15,6 +15,7 @@ import {
 
 import Header from "../components/layout/Header";
 import Sidebar from "../components/layout/Sidebar";
+import SettingsModal from "../components/modals/SettingsModal";
 import PlanCard from "../components/planner/PlanCard";
 import CreatePlanModal from "../components/planner/CreatePlanModal";
 import PlanDetailsModal from "../components/planner/PlanDetailsModal";
@@ -93,6 +94,7 @@ export default function Planner() {
   const [darkMode, setDarkMode] = useState(true);
   const [accentColor, setAccentColor] = useState("#FF9900");
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [showSettingsModal, setShowSettingsModal] = useState(false);
 
   // Planner state
   const [plans, setPlans] = useState<Plan[]>(mockPlans);
@@ -218,7 +220,12 @@ export default function Planner() {
         setAccentColor={setAccentColor}
       />
 
-      <Sidebar isOpen={sidebarOpen} darkMode={darkMode} accentColor={accentColor} />
+      <Sidebar 
+        isOpen={sidebarOpen} 
+        darkMode={darkMode} 
+        accentColor={accentColor}
+        onOpenSettings={() => setShowSettingsModal(true)}
+      />
 
       <main className="lg:ml-64 pt-14 min-h-screen transition-all duration-300">
         <div className="p-6 md:p-8 max-w-[1600px] mx-auto space-y-6">
@@ -460,6 +467,16 @@ export default function Planner() {
           }}
         />
       )}
+
+      {/* Settings Modal */}
+      <SettingsModal
+        isOpen={showSettingsModal}
+        onClose={() => setShowSettingsModal(false)}
+        darkMode={darkMode}
+        toggleTheme={toggleTheme}
+        accentColor={accentColor}
+        setAccentColor={setAccentColor}
+      />
 
       {sidebarOpen && (
         <div
