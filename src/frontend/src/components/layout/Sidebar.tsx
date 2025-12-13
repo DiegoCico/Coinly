@@ -5,7 +5,8 @@ import {
   HelpCircle,
   LogOut,
   Target,
-  User
+  User,
+  PieChart
 } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
@@ -24,6 +25,7 @@ export default function Sidebar({ isOpen, darkMode, accentColor }: SidebarProps)
   const navItems = [
     { icon: LayoutDashboard, label: "Dashboard", path: "/dashboard" },
     { icon: Target, label: "Planner", path: "/planner" },
+    { icon: PieChart, label: "Investments", path: "/investments" },
     { icon: TrendingUp, label: "Budgets", path: "/budgets" },
   ];
 

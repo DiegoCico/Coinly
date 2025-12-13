@@ -3,6 +3,7 @@ import { AuthProvider } from "./contexts/AuthContext";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
 import Dashboard from "./pages/Dashboard";
 import Planner from "./pages/Planner";
+import Investments from "./pages/Investments";
 import Preferences from "./pages/Preferences";
 import SignIn from "./pages/SignIn";
 import SignUp from "./pages/SignUp";
@@ -33,6 +34,14 @@ export default function App() {
             element={
               <ProtectedRoute>
                 <Planner />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/investments" 
+            element={
+              <ProtectedRoute>
+                <Investments />
               </ProtectedRoute>
             } 
           />

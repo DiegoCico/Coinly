@@ -4,6 +4,7 @@ import { helloRouter } from './hello';
 import { authRouter } from './auth';
 import { plannerRouter } from './planner';
 import { plaidRouter } from './plaid';
+import { investmentsRouter } from './investments';
 
 const coreRouter = router({
   health: publicProcedure.query(() => ({ ok: true })),
@@ -15,6 +16,7 @@ export const appRouter = router({
   auth: authRouter,
   planner: plannerRouter,
   plaid: plaidRouter,
+  investments: investmentsRouter,
 });
 
 export type AppRouter = typeof appRouter;

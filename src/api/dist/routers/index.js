@@ -6,6 +6,7 @@ const hello_1 = require("./hello");
 const auth_1 = require("./auth");
 const planner_1 = require("./planner");
 const plaid_1 = require("./plaid");
+const investments_1 = require("./investments");
 const coreRouter = (0, trpc_1.router)({
     health: trpc_1.publicProcedure.query(() => ({ ok: true })),
 });
@@ -15,4 +16,5 @@ exports.appRouter = (0, trpc_1.router)({
     auth: auth_1.authRouter,
     planner: planner_1.plannerRouter,
     plaid: plaid_1.plaidRouter,
+    investments: investments_1.investmentsRouter,
 });
