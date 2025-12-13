@@ -26,16 +26,13 @@ const DEMO_USERS = {
         givenName: 'Demo',
         familyName: 'User',
         confirmed: true,
-    },
-    'test@example.com': {
-        userId: 'test_user_456',
-        email: 'test@example.com',
-        password: 'TestPassword123',
-        givenName: 'Test',
-        familyName: 'User',
-        confirmed: true,
     }
 };
+// Allowed users for authentication (only these emails can sign in)
+const ALLOWED_USERS = [
+    'demo@example.com',
+    'cicotosted@gmail.com'
+];
 // Generate a simple JWT-like token for demo mode
 function generateDemoToken(userId, email) {
     const payload = {
@@ -92,6 +89,13 @@ exports.authRouter = (0, trpc_1.router)({
         .input(SignUpSchema)
         .mutation(async ({ input }) => {
         try {
+            // Check if user is allowed to sign up
+            if (!ALLOWED_USERS.includes(input.email)) {
+                throw new server_1.TRPCError({
+                    code: 'UNAUTHORIZED',
+                    message: 'Access denied. This email is not authorized to register for this application.',
+                });
+            }
             const command = new client_cognito_identity_provider_1.SignUpCommand({
                 ClientId: CLIENT_ID,
                 Username: input.email,
@@ -166,8 +170,15 @@ exports.authRouter = (0, trpc_1.router)({
         .input(SignInSchema)
         .mutation(async ({ input }) => {
         try {
-            // Demo mode for local development
-            if (IS_DEMO_MODE) {
+            // Check if user is allowed to sign in
+            if (!ALLOWED_USERS.includes(input.email)) {
+                throw new server_1.TRPCError({
+                    code: 'UNAUTHORIZED',
+                    message: 'Access denied. This email is not authorized to use this application.',
+                });
+            }
+            // Demo mode for demo@example.com only
+            if (IS_DEMO_MODE && input.email === 'demo@example.com') {
                 const demoUser = DEMO_USERS[input.email];
                 if (!demoUser) {
                     throw new server_1.TRPCError({
@@ -314,7 +325,7 @@ exports.authRouter = (0, trpc_1.router)({
                     message: 'User ID required',
                 });
             }
-            // Demo mode - return mock profile
+            // Demo mode - return mock profile only for demo users
             if (IS_DEMO_MODE && userId.startsWith('demo_user')) {
                 const demoUser = Object.values(DEMO_USERS).find(u => u.userId === userId);
                 if (demoUser) {

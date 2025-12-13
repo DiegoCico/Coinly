@@ -172,8 +172,6 @@ export class PlaidService {
         access_token: accessToken,
         start_date: startDate,
         end_date: endDate,
-        count: 500, // Maximum transactions to fetch
-        offset: 0,
       };
 
       const response = await plaidClient.transactionsGet(request);

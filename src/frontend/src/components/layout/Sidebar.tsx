@@ -1,7 +1,5 @@
 import {
   LayoutDashboard,
-  Wallet,
-  CreditCard,
   TrendingUp,
   Settings,
   HelpCircle,
@@ -26,10 +24,7 @@ export default function Sidebar({ isOpen, darkMode, accentColor }: SidebarProps)
   const navItems = [
     { icon: LayoutDashboard, label: "Dashboard", path: "/dashboard" },
     { icon: Target, label: "Planner", path: "/planner" },
-    { icon: Wallet, label: "Cost Management", path: "/cost-management" },
-    { icon: CreditCard, label: "Billing", path: "/billing" },
     { icon: TrendingUp, label: "Budgets", path: "/budgets" },
-    { icon: Settings, label: "Preferences", path: "/preferences" }
   ];
 
   return (
@@ -102,7 +97,7 @@ export default function Sidebar({ isOpen, darkMode, accentColor }: SidebarProps)
             style={location.pathname === "/preferences" ? { color: accentColor } : {}}
           >
             <Settings size={18} />
-            Preferences
+            Settings
           </button>
           <button
             className={`w-full flex items-center gap-3 px-3 py-2.5 text-sm font-medium rounded-md transition-all duration-200 ${

@@ -437,17 +437,6 @@ export default function Dashboard() {
                 </div>
               </>
             )}
-
-            <div className="flex items-center gap-2">
-              <div className={`text-xs px-2 py-1 rounded-full ${
-                darkMode ? 'bg-green-900/40 text-green-400' : 'bg-green-100 text-green-700'
-              }`}>
-                Live Data
-              </div>
-              <div className={`text-xs ${darkMode ? 'text-gray-500' : 'text-gray-500'}`}>
-                Auto-refresh: 30s
-              </div>
-            </div>
           </div>
 
           {/* Metric Cards */}

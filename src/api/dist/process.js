@@ -18,9 +18,6 @@ const envSchema = zod_1.z.object({
     APP_SIGNIN_URL: zod_1.z.string().optional(),
     WEB_URL: zod_1.z.string().optional(),
 });
-/* ============================================================================
-   Lazy Loader (runtime-safe)
-============================================================================ */
 function loadConfig() {
     const env = envSchema.parse(process.env);
     const stage = env.STAGE.toLowerCase();

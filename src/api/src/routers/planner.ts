@@ -558,14 +558,14 @@ export const plannerRouter = router({
         const activePlans = plans.filter(plan => plan.isActive);
         const completedPlans = plans.filter(plan => (plan.currentAmount || 0) >= (plan.targetAmount || 0));
         
-        const plansByType = plans.reduce((acc, plan) => {
+        const plansByType = plans.reduce((acc: Record<string, { count: number; totalTarget: number; totalCurrent: number }>, plan) => {
           const type = plan.planType || 'other';
           if (!acc[type]) acc[type] = { count: 0, totalTarget: 0, totalCurrent: 0 };
           acc[type].count++;
           acc[type].totalTarget += plan.targetAmount || 0;
           acc[type].totalCurrent += plan.currentAmount || 0;
           return acc;
-        }, {} as Record<string, { count: number; totalTarget: number; totalCurrent: number }>);
+        }, {});
 
         return {
           totalPlans: plans.length,

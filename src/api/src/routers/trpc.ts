@@ -2,11 +2,9 @@ import { initTRPC } from '@trpc/server';
 import * as trpcExpress from '@trpc/server/adapters/express';
 import type { Request, Response } from 'express';
 import type { APIGatewayProxyEventV2, Context as LambdaCtx } from 'aws-lambda';
-import { COOKIE_ACCESS, parseCookiesFromCtx } from '../helpers/cookies';
+import { COOKIE_ACCESS, parseCookiesFromCtx } from '../cognito/cookies';
 import { CognitoJwtVerifier } from 'aws-jwt-verify';
-import { getUserPermissions } from '../helpers/teamspaceHelpers';
 import { TRPCError } from '@trpc/server';
-import type { Permission } from './roles';
 
 export type Context = {
   req?: Request;
@@ -20,8 +18,6 @@ export type Context = {
     userId: string;
     email?: string | undefined;
     username?: string;
-    roleName?: string;
-    permissions?: string[];
     decode?: Record<string, any>;
   };
 };
@@ -125,8 +121,6 @@ const isAuthed = t.middleware(async ({ ctx, next }) => {
               userId: decoded.sub,
               email: decoded.email,
               username: decoded.email,
-              roleName: 'user',
-              permissions: ['read', 'write'],
               decode: { ...decoded, access_token: accessToken },
             },
           },
@@ -146,9 +140,6 @@ const isAuthed = t.middleware(async ({ ctx, next }) => {
     const emailValue =
       decoded.email !== undefined && decoded.email !== null ? String(decoded.email) : undefined;
 
-    // Attach user info
-    const { roleName, permissions } = await getUserPermissions(decoded.sub);
-
     return next({
       ctx: {
         ...ctx,
@@ -158,8 +149,6 @@ const isAuthed = t.middleware(async ({ ctx, next }) => {
           email: emailValue,
           username:
             decoded['cognito:username'] !== null ? String(decoded['cognito:username']) : undefined,
-          roleName,
-          permissions,
           decode: { ...decoded, access_token: accessToken },
         },
       },
@@ -173,24 +162,3 @@ const isAuthed = t.middleware(async ({ ctx, next }) => {
 });
 
 export const protectedProcedure = t.procedure.use(isAuthed);
-
-// Permission middleware factory 
-export function requirePermission(requiredPermission: Permission) {
-  return async ({ ctx, next }: { ctx: Context; next: any }) => {
-    const user = ctx.user;
-    if (!user) throw new TRPCError({ code: 'UNAUTHORIZED', message: 'Missing user in context' });
-
-    if (!user.permissions || !Array.isArray(user.permissions)) {
-      throw new TRPCError({ code: 'FORBIDDEN', message: 'User has no permissions assigned' });
-    }
-
-    if (!user.permissions.includes(requiredPermission)) {
-      throw new TRPCError({ code: 'FORBIDDEN', message: 'Insufficient permissions' });
-    }
-
-    return next();
-  };
-}
-
-export const permissionedProcedure = (perm: Permission) =>
-  protectedProcedure.use(requirePermission(perm));

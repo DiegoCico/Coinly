@@ -21,9 +21,6 @@ const envSchema = z.object({
   WEB_URL: z.string().optional(),
 });
 
-/* ============================================================================
-   Lazy Loader (runtime-safe)
-============================================================================ */
 export function loadConfig() {
   const env = envSchema.parse(process.env);
 

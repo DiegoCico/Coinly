@@ -190,8 +190,8 @@ class BankDataSyncer {
       }
 
       console.log(`    ✅ Synced ${transactions.length} transactions`);
-    } catch (error) {
-      if (error.name === 'ConditionalCheckFailedException') {
+    } catch (error: unknown) {
+      if (error instanceof Error && error.name === 'ConditionalCheckFailedException') {
         // Transaction already exists, skip
         return;
       }

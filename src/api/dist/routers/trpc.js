@@ -1,11 +1,9 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.permissionedProcedure = exports.protectedProcedure = exports.mergeRouters = exports.publicProcedure = exports.router = exports.createLambdaContext = exports.createExpressContext = void 0;
-exports.requirePermission = requirePermission;
+exports.protectedProcedure = exports.mergeRouters = exports.publicProcedure = exports.router = exports.createLambdaContext = exports.createExpressContext = void 0;
 const server_1 = require("@trpc/server");
-const cookies_1 = require("../helpers/cookies");
+const cookies_1 = require("../cognito/cookies");
 const aws_jwt_verify_1 = require("aws-jwt-verify");
-const teamspaceHelpers_1 = require("../helpers/teamspaceHelpers");
 const server_2 = require("@trpc/server");
 /**
  *  Express Context
@@ -87,8 +85,6 @@ const isAuthed = t.middleware(async ({ ctx, next }) => {
                             userId: decoded.sub,
                             email: decoded.email,
                             username: decoded.email,
-                            roleName: 'user',
-                            permissions: ['read', 'write'],
                             decode: { ...decoded, access_token: accessToken },
                         },
                     },
@@ -105,8 +101,6 @@ const isAuthed = t.middleware(async ({ ctx, next }) => {
         const decoded = await verifier.verify(accessToken);
         // Normalize email to a string at runtime to keep things predictable
         const emailValue = decoded.email !== undefined && decoded.email !== null ? String(decoded.email) : undefined;
-        // Attach user info
-        const { roleName, permissions } = await (0, teamspaceHelpers_1.getUserPermissions)(decoded.sub);
         return next({
             ctx: {
                 ...ctx,
@@ -115,8 +109,6 @@ const isAuthed = t.middleware(async ({ ctx, next }) => {
                     userId: decoded.sub,
                     email: emailValue,
                     username: decoded['cognito:username'] !== null ? String(decoded['cognito:username']) : undefined,
-                    roleName,
-                    permissions,
                     decode: { ...decoded, access_token: accessToken },
                 },
             },
@@ -130,20 +122,3 @@ const isAuthed = t.middleware(async ({ ctx, next }) => {
     }
 });
 exports.protectedProcedure = t.procedure.use(isAuthed);
-// Permission middleware factory 
-function requirePermission(requiredPermission) {
-    return async ({ ctx, next }) => {
-        const user = ctx.user;
-        if (!user)
-            throw new server_2.TRPCError({ code: 'UNAUTHORIZED', message: 'Missing user in context' });
-        if (!user.permissions || !Array.isArray(user.permissions)) {
-            throw new server_2.TRPCError({ code: 'FORBIDDEN', message: 'User has no permissions assigned' });
-        }
-        if (!user.permissions.includes(requiredPermission)) {
-            throw new server_2.TRPCError({ code: 'FORBIDDEN', message: 'Insufficient permissions' });
-        }
-        return next();
-    };
-}
-const permissionedProcedure = (perm) => exports.protectedProcedure.use(requirePermission(perm));
-exports.permissionedProcedure = permissionedProcedure;

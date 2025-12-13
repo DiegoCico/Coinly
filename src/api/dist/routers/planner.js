@@ -142,7 +142,7 @@ exports.plannerRouter = (0, trpc_1.router)({
             updatedAt: now,
         };
         try {
-            // Demo mode - just return the plan without saving
+            // Demo mode - just return the plan without saving (only for demo users)
             if (IS_DEMO_MODE && userId.startsWith('demo_user')) {
                 console.log('Demo mode: Created plan', plan);
                 return plan;
@@ -172,7 +172,7 @@ exports.plannerRouter = (0, trpc_1.router)({
         .query(async ({ ctx }) => {
         const userId = ctx.user.userId;
         try {
-            // Demo mode - return mock plans
+            // Demo mode - return mock plans (only for demo users)
             if (IS_DEMO_MODE && userId.startsWith('demo_user')) {
                 return DEMO_PLANS.filter(plan => plan.userId === userId);
             }
@@ -306,7 +306,7 @@ exports.plannerRouter = (0, trpc_1.router)({
         .mutation(async ({ input, ctx }) => {
         const userId = ctx.user.userId;
         try {
-            // Demo mode - just log and return success
+            // Demo mode - just log and return success (only for demo users)
             if (IS_DEMO_MODE && userId.startsWith('demo_user')) {
                 console.log('Demo mode: Updated progress', input);
                 return { success: true };
@@ -500,15 +500,23 @@ exports.plannerRouter = (0, trpc_1.router)({
         .query(async ({ ctx }) => {
         const userId = ctx.user.userId;
         try {
-            const result = await docClient.send(new lib_dynamodb_1.QueryCommand({
-                TableName: TABLE_NAME,
-                KeyConditionExpression: 'pk = :pk AND begins_with(sk, :sk)',
-                ExpressionAttributeValues: {
-                    ':pk': `USER#${userId}`,
-                    ':sk': 'PLAN#',
-                },
-            }));
-            const plans = result.Items || [];
+            let plans;
+            // Demo mode - use demo data (only for demo users)
+            if (IS_DEMO_MODE && userId.startsWith('demo_user')) {
+                plans = DEMO_PLANS.filter(plan => plan.userId === userId);
+            }
+            else {
+                // Production mode - query DynamoDB
+                const result = await docClient.send(new lib_dynamodb_1.QueryCommand({
+                    TableName: TABLE_NAME,
+                    KeyConditionExpression: 'pk = :pk AND begins_with(sk, :sk)',
+                    ExpressionAttributeValues: {
+                        ':pk': `USER#${userId}`,
+                        ':sk': 'PLAN#',
+                    },
+                }));
+                plans = result.Items || [];
+            }
             const totalTargetAmount = plans.reduce((sum, plan) => sum + (plan.targetAmount || 0), 0);
             const totalCurrentAmount = plans.reduce((sum, plan) => sum + (plan.currentAmount || 0), 0);
             const totalMonthlySavings = plans.reduce((sum, plan) => sum + (plan.monthlySavingsGoal || 0), 0);

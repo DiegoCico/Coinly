@@ -44,7 +44,10 @@ const routers_1 = require("./routers");
 const trpc_1 = require("./routers/trpc");
 const CANONICAL_ALLOWED_ORIGINS = [
     process.env.LOCAL_WEB_ORIGIN ?? 'http://localhost:5173',
+    'http://localhost:5173',
+    'http://localhost:5174',
     'http://127.0.0.1:5173',
+    'http://127.0.0.1:5174',
     'https://d2cktegyq4qcfk.cloudfront.net',
 ];
 function isAllowedOrigin(origin) {
